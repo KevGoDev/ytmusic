@@ -9,14 +9,13 @@ def create_app():
     app.secret_key = "super secret"
     CORS(app, resources={r"/*": {"origins": "*"}})
 
-    # init db
     db_init()
 
     # register routes
-    from api import auth, status
+    from api import status, yt
 
     app.register_blueprint(status.bp)
-    app.register_blueprint(auth.bp)
+    app.register_blueprint(yt.bp)
     return app
 
 
