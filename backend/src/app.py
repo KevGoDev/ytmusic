@@ -7,7 +7,7 @@ from utils.database import db_init
 def create_app():
     app = Flask(__name__, static_folder="static/")
     app.secret_key = "super secret"
-    CORS(app, resources={r"/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": "*"}}, expose_headers='Content-Disposition')
 
     db_init()
 

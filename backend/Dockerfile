@@ -7,7 +7,8 @@ RUN apk add --no-cache \
     build-base \ 
     gcc \
     musl-dev \
-    postgresql-dev
+    postgresql-dev \ 
+    ffmpeg
 
 RUN pip install -r requirements.txt
 
