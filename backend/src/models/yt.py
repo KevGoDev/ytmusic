@@ -12,7 +12,8 @@ class Download(Base):
 
     id: Mapped[int] = mapped_column(String(16), primary_key=True)
     title: Mapped[str] = mapped_column("title", String(256), nullable=False)
-    path: Mapped[str] = mapped_column("path", String(512), nullable=False)
+    path: Mapped[str] = mapped_column("path", String(512), nullable=True)
+    s3_key: Mapped[str] = mapped_column("s3_key", String(512), nullable=True)
     status: Mapped[str] = mapped_column("status", String(256), nullable=True, default=None)
     progress: Mapped[float] = mapped_column("progress", Numeric(5, 2), nullable=True, default=0)
     created_at: Mapped[datetime.datetime] = mapped_column("created_at", DateTime, default=datetime.datetime.now)
@@ -22,9 +23,8 @@ class Download(Base):
         session: Session,
         id: str,
         title: str,
-        path: str,
     ) -> "Download":
-        dl = Download(id=id, title=title, path=path)
+        dl = Download(id=id, title=title)
         session.add(dl)
         session.flush()
         return dl
@@ -32,6 +32,10 @@ class Download(Base):
     @staticmethod
     def get_by_id(session: Session, video_id: str) -> Optional["Download"]:
         return session.query(Download).filter(Download.id == video_id).first()
+
+    @staticmethod
+    def get_all_unstarted(session: Session) -> list["Download"]:
+        return session.query(Download).filter(Download.status == None).all()
 
     def to_dict(self) -> dict:
         return {
