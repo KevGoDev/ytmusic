@@ -4,7 +4,9 @@ import { Card, CardContent, CardMedia, LinearProgress, Typography } from '@mui/m
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 
-export default function VideoProgress({ id, title, thumbnail }: DownloadJob) {
+type VideoProgressProps = DownloadJob & { setCompleted: (id: string) => void };
+
+export default function VideoProgress({ id, title, thumbnail, completed, setCompleted }: VideoProgressProps) {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
   const [isPolling, setIsPolling] = useState(false);
@@ -33,8 +35,11 @@ export default function VideoProgress({ id, title, thumbnail }: DownloadJob) {
           res.json().then((data) => {
             setProgress(data.progress);
             setStatus(data.status);
-            if(data.status === 'finished'){
-              downloadFile();
+            if(data.status === 'finished' || data.status === 'error'){
+              setCompleted(id);
+              if(data.status === 'finished'){
+                downloadFile();
+              }
             }
           });
         }
@@ -50,7 +55,7 @@ export default function VideoProgress({ id, title, thumbnail }: DownloadJob) {
       if(!isPolling && status !==  'finished'){
         pollDownload();
       }
-    }, 500);
+    }, 1000);
     return () => clearInterval(interval);
   }, [isPolling, status]);
 

@@ -8,6 +8,7 @@ export type DownloadJob = {
   id: string;
   title: string;
   thumbnail: string;
+  completed: boolean;
 };
 
 export default function DownloadPage() {
@@ -25,22 +26,31 @@ export default function DownloadPage() {
     setErrorMsg(null);
     const params = url.split('?')[1];
     const playlist_id = queryString.parse(params).list;
+    const video_id = queryString.parse(params).v;
     if (!playlist_id) {
       setErrorMsg("URL invalide");
       setIsDownloading(false);
       return;
     }
     // Create download jobs
-    fetch(`http://localhost:5000/yt/convert?list=${playlist_id}`).then((res) => {
+    let cv_url = `http://localhost:5000/yt/convert?list=${playlist_id}`;
+    if (video_id) {
+      cv_url += `&id=${video_id}`;
+    }
+    fetch(cv_url).then((res) => {
       if (res.status === 200) {
         res.json().then((data) => {
-          setTrackedJobs(data.jobs);
+          let jobs = data.jobs;
+          for (let i = 0; i < jobs.length; i++) {
+            jobs[i].completed = false;
+          }
+          setTrackedJobs(jobs);
         });
       } else {
         setErrorMsg("Erreur lors du téléchargement");
       }
     }).catch((err) => {
-      setErrorMsg("Erreur lors du téléchargement");
+      setErrorMsg("Erreur lors du téléchargement, playlist invalide ou privée");
     }).finally(() => {
       setIsDownloading(false);
     });
@@ -73,6 +83,21 @@ export default function DownloadPage() {
       setIsDownloading(false);
     });
   };
+
+  const setCompleted = (id: string) => {
+    setTrackedJobs((jobs) => {
+      return jobs.map((job) => {
+        if (job.id === id) {
+          job.completed = true;
+        }
+        return job;
+      });
+    });
+  }
+
+  const getCompletedCount = () => {
+    return trackedJobs.filter((job) => job.completed).length;
+  }
 
 
   return (
@@ -112,13 +137,21 @@ export default function DownloadPage() {
           </Box>
         </div>
 
-        <Grid container spacing={2}>
-          {trackedJobs.map((job) => (
-            <Grid key={job.id} item xs={8} md={4}>
-              <VideoProgress {...job} />
+        {trackedJobs.length > 0 && (
+          <Box>
+            <Typography variant="h5" align="center" gutterBottom>
+              Téléchargements en cours ({getCompletedCount()}/{trackedJobs.length})
+            </Typography>
+            <LinearProgress variant='determinate' value={getCompletedCount()/trackedJobs.length*100} />
+            <Grid container spacing={2}>
+              {trackedJobs.map((job) => (
+                <Grid key={job.id} item xs={8} md={4}>
+                  <VideoProgress {...job} setCompleted={setCompleted} />
+                </Grid>
+              ))}
             </Grid>
-          ))}
-        </Grid>
+          </Box>
+        )}
       </Stack>
     </Container>
   );

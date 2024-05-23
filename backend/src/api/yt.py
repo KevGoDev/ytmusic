@@ -1,3 +1,4 @@
+from typing import Optional
 import yt_dlp
 from flask import Blueprint, request, send_file
 from models.yt import Download
@@ -29,6 +30,8 @@ YDL_OPTIONS = {
         'preferredcodec': 'mp3',
         'preferredquality': '192',
     }],
+    'force_generic_extractor': True,
+    'dump_single_json': True,
 }
 
 
@@ -54,15 +57,27 @@ def create_video_job(video_id: str) -> DownloadJobInfo:
     return DownloadJobInfo(video_id, title, thumbnail)
 
 
-def create_playlist_jobs(playlist_id: str) -> list[DownloadJobInfo]:
+def create_playlist_jobs(playlist_id: str, video_id: Optional[str]=None) -> list[DownloadJobInfo]:
     jobs = []
     with yt_dlp.YoutubeDL(YDL_OPTIONS) as ydl:
-        info = ydl.extract_info(f'https://www.youtube.com/playlist?list={playlist_id}', download=False)
+        if playlist_id.startswith('RD'):
+            url = f'https://www.youtube.com/watch?list={playlist_id}&v={video_id}'
+        else:
+            url = f'https://www.youtube.com/playlist?list={playlist_id}'
+        info = ydl.extract_info(url, download=False)
         with db_scope() as db:
+            if 'entries' not in info:
+                logging.warning("+++++++++++++ No entries found in playlist +++++++++++++")
+                for k in info.keys():
+                    logging.warning(f"{k}: {info[k]}")
             for entry in info['entries']:
                 video_id = entry['id']
                 title = entry['title']
-                thumbnail = entry['thumbnail']
+                thumbnail = None
+                if 'thumbnail' in entry.keys():
+                    thumbnail = entry['thumbnail']
+                elif 'thumbnails' in entry.keys():
+                    thumbnail = entry['thumbnails'][0]['url']
                 jobs.append(DownloadJobInfo(video_id, title, thumbnail))
                 dl = Download.get_by_id(db, video_id)
                 if not dl:
@@ -76,7 +91,7 @@ def convert_yt_to_mp3():
     youtube_video_id = request.args.get('id')
     youtube_playlist_id = request.args.get('list')
     if youtube_playlist_id:
-        jobs = create_playlist_jobs(youtube_playlist_id)
+        jobs = create_playlist_jobs(youtube_playlist_id, youtube_video_id)
     else:
         jobs = [create_video_job(youtube_video_id)]
     return {"jobs": jobs}
