@@ -13,7 +13,7 @@ import boto3
 load_dotenv()
 
 TMP_DIR = create_temp_structure()
-app = Celery('tasks', broker=os.environ.get('REDIS_URL'))
+app = Celery('tasks', broker=os.getenv('REDIS_URL'))
 s3 = boto3.client(
     's3', 
     region_name='us-east-1',

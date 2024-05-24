@@ -47,10 +47,10 @@ export default function DownloadPage() {
           setTrackedJobs(jobs);
         });
       } else {
-        setErrorMsg("Erreur lors du téléchargement");
+        setErrorMsg("Error while downloading");
       }
     }).catch((err) => {
-      setErrorMsg("Erreur lors du téléchargement, playlist invalide ou privée");
+      setErrorMsg("Error while downloading, playlist invalid or private");
     }).finally(() => {
       setIsDownloading(false);
     });
@@ -64,7 +64,7 @@ export default function DownloadPage() {
     const params = url.split('?')[1];
     const video_id = queryString.parse(params).v;
     if (!video_id) {
-      setErrorMsg("URL invalide");
+      setErrorMsg("Invalid URL");
       setIsDownloading(false);
       return;
     }
@@ -75,10 +75,10 @@ export default function DownloadPage() {
           setTrackedJobs(data.jobs);
         });
       } else {
-        setErrorMsg("Erreur lors du téléchargement");
+        setErrorMsg("Error while downloading");
       }
     }).catch((err) => {
-      setErrorMsg("Erreur lors du téléchargement");
+      setErrorMsg("Error while downloading");
     }).finally(() => {
       setIsDownloading(false);
     });
@@ -105,11 +105,11 @@ export default function DownloadPage() {
       <Stack direction={"column"} spacing={2}>
         <div>
           <Typography variant="h4" align="center" gutterBottom>
-            Convertisseur Youtube vers MP3
+            Youtube to MP3
           </Typography>
           {errorMsg && <Box color="error.main" sx={{ pb: 2 }}>{errorMsg}</Box>}
           <TextField
-            label="Lien Youtube"
+            label="Youtube URL"
             variant="outlined"
             value={url}
             onChange={handleUrlChange}
@@ -123,7 +123,7 @@ export default function DownloadPage() {
                 onClick={handleDownloadPlaylist}
                 disabled={isDownloading || !url.includes('list=')}
               >
-                Télécharger la playlist
+                Download playlist
               </Button>
               <Button
                 variant="contained"
@@ -131,7 +131,7 @@ export default function DownloadPage() {
                 onClick={handleDownload}
                 disabled={isDownloading}
               >
-                Télécharger vers MP3
+                Convert to MP3
               </Button>
             </Stack>
           </Box>
@@ -140,7 +140,7 @@ export default function DownloadPage() {
         {trackedJobs.length > 0 && (
           <Box>
             <Typography variant="h5" align="center" gutterBottom>
-              Téléchargements en cours ({getCompletedCount()}/{trackedJobs.length})
+              Downloading ({getCompletedCount()}/{trackedJobs.length})
             </Typography>
             <LinearProgress variant='determinate' value={getCompletedCount()/trackedJobs.length*100} />
             <Grid container spacing={2}>

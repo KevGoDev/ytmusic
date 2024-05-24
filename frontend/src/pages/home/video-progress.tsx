@@ -75,7 +75,7 @@ export default function VideoProgress({ id, title, thumbnail, completed, setComp
           {status === 'finished' && <CheckCircleIcon color="success" sx={{ ml: 1 }} />}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Statut: {status}
+          Status: {status}
         </Typography>
         <LinearProgress color={status === 'finished' ? 'success':'info'} variant="determinate" value={progress} />
       </CardContent>
